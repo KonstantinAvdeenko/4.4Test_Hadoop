@@ -1,0 +1,83 @@
+Копирование всех томов "Война и мир" в контейнер datanode-1 создав в нем папку data_books
+Zapros
+docker cp books/ docker-hadoop-hive-parquet-master-datanode-1:data_books/
+Otvet
+Successfully copied 3.05MB to docker-hadoop-hive-parquet-master-datanode-1:data_books/
+
+Подключение к datanode-1
+Zapros
+docker exec -it docker-hadoop-hive-parquet-master-datanode-1 bash
+Otvet
+root@260d100d79b6:/#
+
+Объединение всех книг в 1 файл
+Zapros
+cat data_books/* > data_books/war_and_world.txt
+Otvet
+root@260d100d79b6:/#
+
+Отправка полученного файла в HDFS
+Zapros
+hadoop fs -put data_books/war_and_world.txt /user/war_and_world.txt
+Otvet
+root@260d100d79b6:/#
+
+Проверка наличия отправленного файла
+Zapros
+hadoop fs -ls /user
+Otvet
+Found 3 items
+drwxr-xr-x   - root supergroup          0 2023-08-09 16:24 /user/hive
+drwxr-xr-x   - hue  hue                 0 2023-08-09 16:59 /user/hue
+-rw-r--r--   3 root supergroup    3048008 2023-08-09 17:39 /user/war_and_world.txt
+
+Смена прав на файл: полные для владельца, для остальных на чтение и исполнение
+Zapros
+hadoop fs -chmod 755 /user/war_and_world.txt
+Otvet
+root@260d100d79b6:/#
+
+Проверка прав доступа
+Zapros
+hadoop fs -ls /user/
+Otvet
+Found 3 items
+drwxr-xr-x   - root supergroup          0 2023-08-09 16:24 /user/hive
+drwxr-xr-x   - hue  hue                 0 2023-08-09 16:59 /user/hue
+-rwxr-xr-x   3 root supergroup    3048008 2023-08-09 17:39 /user/war_and_world.txt
+
+Выяснение размера нужного файла в МБ
+Zapros
+hadoop fs -du -h /user/war_and_world.txt
+Otvet
+2.9 M  /user/war_and_world.txt
+
+Выяснение размера файла с учетом репликации
+Zapros
+hadoop fs -ls -h /user/
+Otvet
+Found 3 items
+drwxr-xr-x   - root supergroup          0 2023-08-09 16:24 /user/hive
+drwxr-xr-x   - hue  hue                 0 2023-08-09 16:59 /user/hue
+-rwxr-xr-x   3 root supergroup      2.9 M 2023-08-09 17:39 /user/war_and_world.txt
+
+Установка фактора репликации = 2
+Zapros
+hadoop fs -setrep 2 /user/war_and_world.txt
+Otvet
+Replication 2 set: /user/war_and_world.txt
+
+Проверка фактора репликации
+Zapros
+hadoop fs -ls -h /user/
+Otvet
+Found 3 items
+drwxr-xr-x   - root supergroup          0 2023-08-09 16:24 /user/hive
+drwxr-xr-x   - hue  hue                 0 2023-08-09 16:59 /user/hue
+-rwxr-xr-x   2 root supergroup      2.9 M 2023-08-09 17:39 /user/war_and_world.txt
+
+Подсчет количества строк в файле
+Zapros
+hadoop fs -cat /user/war_and_world.txt | wc -l
+Otvet
+10272
